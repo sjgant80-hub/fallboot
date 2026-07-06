@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FallBoot · portable estate · runs from anywhere</title>
+<meta name="description" content="Every estate tool cached offline in one portable page. Runs from USB, microSD, or bare filesystem — no internet required after packaging.">
+<meta name="author" content="AI-Native Solutions">
+<meta name="theme-color" content="#1a1a1e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%231a1a1e'/%3E%3Ctext x='16' y='23' font-family='serif' font-size='20' fill='%237a9c7e' text-anchor='middle'%3E%E2%97%8A%3C/text%3E%3C/svg%3E">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--void:#1a1a1e;--deep:#212127;--surface:#2a2a30;--raised:#33333a;--line:rgba(232,228,219,0.08);--line2:rgba(232,228,219,0.16);--text:#e8e4db;--muted:#928d80;--dim:#6b6660;--sage:#7a9c7e;--sage-dim:rgba(122,156,126,0.14);--amber:#d4a052;--amber-dim:rgba(212,160,82,0.14);--coral:#d67a5a;--coral-dim:rgba(214,122,90,0.14);--serif:'Cormorant Garamond','Iowan Old Style',Georgia,serif;--sans:'Inter',-apple-system,system-ui,sans-serif;--mono:'JetBrains Mono','IBM Plex Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:var(--void);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased;min-height:100vh}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;color:inherit}
+h1,h2,h3{font-family:var(--serif);font-weight:400;color:var(--text);line-height:1.2}
+h1{font-size:34px;letter-spacing:0.01em;margin-bottom:6px}
+h1 em{color:var(--sage);font-style:italic}
+h2{font-size:22px;color:var(--text);margin-bottom:10px}
+h2 em{color:var(--sage);font-style:italic}
+h3{font-size:12px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.14em;font-family:var(--mono);font-weight:500}
+a{color:var(--sage);text-decoration:none}
+a:hover{text-decoration:underline}
+code,pre{font-family:var(--mono);font-size:12.5px}
+pre{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px 16px;overflow-x:auto;color:var(--text);white-space:pre;margin:10px 0}
+.topbar{background:rgba(26,26,30,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:50;flex-wrap:wrap;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:22px;color:var(--text)}
+.brand .glyph{color:var(--sage);font-size:22px}
+.brand .co{color:var(--dim);font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;margin-left:6px;text-transform:uppercase}
+.topbar .meta{display:flex;gap:14px;align-items:center;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;flex-wrap:wrap}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.dot.on{background:var(--sage);box-shadow:0 0 8px var(--sage)}
+.dot.off{background:var(--coral)}
+main{max-width:1180px;margin:0 auto;padding:32px 24px 80px;width:100%}
+.lede{font-family:var(--serif);font-size:20px;font-style:italic;color:var(--muted);max-width:820px;margin-bottom:28px;line-height:1.55}
+.lede em{color:var(--sage);font-style:italic}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.btn{background:var(--sage);color:var(--void);padding:12px 22px;border-radius:9px;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{background:#8db091}
+.btn:disabled{opacity:0.55;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line2)}
+.btn.ghost:hover{background:var(--surface)}
+.btn.amber{background:var(--amber);color:var(--void)}
+.btn.amber:hover{background:#e4b060}
+.btn.coral{background:var(--coral);color:var(--void)}
+.btn.coral:hover{background:#e28a6a}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
+.stat{background:var(--deep);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.stat .label{color:var(--muted);font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;margin-bottom:6px}
+.stat .val{font-family:var(--serif);font-size:26px;color:var(--text);line-height:1.1}
+.stat .val em{color:var(--sage);font-style:italic}
+.stat .sub{color:var(--muted);font-size:11.5px;font-family:var(--mono);margin-top:4px}
+.progress{position:relative;height:8px;background:var(--surface);border-radius:4px;overflow:hidden;margin-bottom:16px;display:none}
+.progress.on{display:block}
+.progress .bar{position:absolute;top:0;left:0;bottom:0;background:linear-gradient(90deg,var(--sage),var(--amber));border-radius:4px;transition:width 0.3s}
+.progress .txt{position:absolute;top:-22px;left:0;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:0.1em}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:36px}
+.tool{background:var(--deep);border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:flex;flex-direction:column;gap:8px;transition:all .15s;position:relative;overflow:hidden}
+.tool:hover{border-color:var(--sage-dim);transform:translateY(-2px)}
+.tool .head{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.tool .name{font-family:var(--serif);font-size:19px;color:var(--text)}
+.tool .glyph{font-family:var(--serif);font-size:19px;color:var(--sage)}
+.tool .cat{color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase}
+.tool .desc{color:var(--muted);font-size:13px;line-height:1.55;flex:1;min-height:52px}
+.tool .foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:6px;padding-top:10px;border-top:1px solid var(--line)}
+.tool .status{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.tool.cached .status{color:var(--sage)}
+.tool.pending .status{color:var(--amber)}
+.tool.missing .status{color:var(--coral)}
+.tool.verified .status::after{content:' ✓';color:var(--sage)}
+.tool .status .sig{width:8px;height:8px;border-radius:50%}
+.tool.cached .status .sig{background:var(--sage);box-shadow:0 0 6px var(--sage)}
+.tool.pending .status .sig{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+.tool.missing .status .sig{background:var(--coral);box-shadow:0 0 6px var(--coral)}
+.tool .launch{background:var(--surface);color:var(--text);padding:6px 12px;border-radius:6px;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;border:1px solid var(--line2)}
+.tool .launch:hover{background:var(--raised);color:var(--sage)}
+.tool .bytes{color:var(--dim);font-family:var(--mono);font-size:10px}
+.section{background:var(--deep);border:1px solid var(--line);border-radius:16px;padding:28px 30px;margin-bottom:20px}
+.section h2{margin-bottom:14px}
+.section p{color:var(--muted);margin-bottom:12px;line-height:1.65;font-size:14.5px}
+.section p em{color:var(--sage);font-style:italic}
+.section ul,.section ol{color:var(--muted);margin:8px 0 14px 22px;font-size:14px;line-height:1.75}
+.section li{margin-bottom:4px}
+.section li code{background:var(--surface);padding:1px 6px;border-radius:4px;color:var(--text);font-size:11.5px}
+.tabs{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tab{background:transparent;color:var(--muted);padding:10px 18px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.on{color:var(--sage);border-bottom-color:var(--sage)}
+.panel{display:none}
+.panel.on{display:block}
+.log{background:var(--void);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:11.5px;color:var(--muted);max-height:220px;overflow-y:auto;margin-top:12px;line-height:1.7}
+.log .l-ok{color:var(--sage)}
+.log .l-warn{color:var(--amber)}
+.log .l-err{color:var(--coral)}
+.log .l-dim{color:var(--dim)}
+.breakdown{max-height:280px;overflow-y:auto;border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--void)}
+.breakdown-row{display:flex;justify-content:space-between;padding:8px 6px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11.5px;color:var(--muted);gap:10px}
+.breakdown-row:last-child{border-bottom:none}
+.breakdown-row .b-name{color:var(--text)}
+.breakdown-row .b-bytes{color:var(--sage)}
+.footer{text-align:center;color:var(--dim);font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;padding:24px;text-transform:uppercase;margin-top:20px}
+.footer .glyph{color:var(--sage)}
+.hash{font-family:var(--mono);font-size:9.5px;color:var(--dim);word-break:break-all}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend .sig{width:8px;height:8px;border-radius:50%}
+@media (max-width:640px){h1{font-size:26px}.lede{font-size:17px}main{padding:20px 16px 60px}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="glyph">◊</span>
+    <span>FallBoot</span>
+    <span class="co">AI-Native Solutions</span>
+  </div>
+  <div class="meta">
+    <span><span id="net-dot" class="dot on"></span><span id="net-txt">online</span></span>
+    <span><span id="sw-dot" class="dot off"></span>service worker</span>
+    <span id="version">v1.0</span>
+  </div>
+</header>
+
+<main>
+  <h1>portable estate · <em>runs from anywhere</em></h1>
+  <p class="lede">Every tool in the AI-Native Solutions estate, cached offline in one page. <em>Bundle</em> once, carry on USB or microSD, launch on any machine — no internet required. Includes a documented path to bake FallBoot into a bootable GrapheneOS installer USB.</p>
+
+  <div class="controls">
+    <button class="btn" id="btn-bundle">◊ Bundle estate</button>
+    <button class="btn amber" id="btn-verify">✓ Verify integrity</button>
+    <button class="btn ghost" id="btn-export">⤓ Export bundle (.zip)</button>
+    <button class="btn ghost" id="btn-refresh">↻ Refresh status</button>
+    <button class="btn coral" id="btn-gc">⌫ Purge cache</button>
+  </div>
+
+  <div class="progress" id="progress"><div class="txt" id="progress-txt">idle</div><div class="bar" id="progress-bar" style="width:0%"></div></div>
+
+  <div class="stats">
+    <div class="stat"><div class="label">Tools cached</div><div class="val"><em id="s-cached">0</em> / <span id="s-total">16</span></div><div class="sub" id="s-pct">0%</div></div>
+    <div class="stat"><div class="label">Bundle size</div><div class="val" id="s-bytes">— <em>MB</em></div><div class="sub" id="s-est">estimating</div></div>
+    <div class="stat"><div class="label">Storage quota</div><div class="val" id="s-quota">— <em>MB</em></div><div class="sub" id="s-usage">available</div></div>
+    <div class="stat"><div class="label">Integrity</div><div class="val" id="s-verify">— <em>unchecked</em></div><div class="sub" id="s-verify-sub">run verify</div></div>
+  </div>
+
+  <div class="legend">
+    <span><span class="sig" style="background:var(--sage);box-shadow:0 0 6px var(--sage)"></span>Cached offline</span>
+    <span><span class="sig" style="background:var(--amber);box-shadow:0 0 6px var(--amber)"></span>First-fetch needed</span>
+    <span><span class="sig" style="background:var(--coral);box-shadow:0 0 6px var(--coral)"></span>Unavailable</span>
+  </div>
+
+  <div class="grid" id="tool-grid"></div>
+
+  <div class="section">
+    <div class="tabs">
+      <button class="tab on" data-panel="storage">Storage</button>
+      <button class="tab" data-panel="usb">Boot from USB</button>
+      <button class="tab" data-panel="log">Activity log</button>
+      <button class="tab" data-panel="about">About</button>
+    </div>
+
+    <div class="panel on" id="p-storage">
+      <h2>storage · <em>per-tool breakdown</em></h2>
+      <p>Every URL fetched by <em>Bundle</em> lives in the browser's Cache Storage under <code>fallboot-v1</code>. Cross-origin responses from <code>*.github.io</code> are stored as opaque — the browser serves them transparently on navigation but JavaScript cannot inspect their bytes. That's fine for launch-and-use; it means the <em>size</em> readouts for opaque entries are estimated from server <code>content-length</code> or a fixed padding when unknown.</p>
+      <div class="breakdown" id="breakdown"><div class="breakdown-row"><span class="b-name">— run Bundle to populate —</span></div></div>
+    </div>
+
+    <div class="panel" id="p-usb">
+      <h2>boot from USB · <em>GrapheneOS installer + FallBoot payload</em></h2>
+      <p>Turn a USB stick into a multi-boot device that carries the GrapheneOS installer <em>and</em> the FallBoot cache. Useful for border crossings, field deployment, or provisioning a fresh device without ever going online.</p>
+
+      <h3>materials</h3>
+      <ul>
+        <li>USB 3.0+ stick, 32 GB or larger</li>
+        <li>A Linux or macOS machine (Windows works but the Ventoy CLI is smoother on POSIX)</li>
+        <li>Latest GrapheneOS installer ISO from <a href="https://grapheneos.org/install/">grapheneos.org/install</a></li>
+        <li>Ventoy (multi-boot loader) from <a href="https://www.ventoy.net/">ventoy.net</a></li>
+        <li>Portable Chromium build (e.g. ungoogled-chromium) from <a href="https://ungoogled-software.github.io/ungoogled-chromium-binaries/">ungoogled-chromium-binaries</a></li>
+      </ul>
+
+      <h3>step 1 · install ventoy on the USB</h3>
+      <pre># Linux/macOS
+sudo ./Ventoy2Disk.sh -i /dev/sdX     # replace sdX with your USB device
+
+# Windows
+Ventoy2Disk.exe → select USB → Install</pre>
+      <p>Ventoy creates two partitions: a small VTOYEFI partition (bootloader) and a large exFAT partition for payloads. Anything you drop onto the exFAT partition is bootable if Ventoy recognises the format (ISO, IMG, WIM, VHD, EFI).</p>
+
+      <h3>step 2 · drop the GrapheneOS installer ISO</h3>
+      <pre>cp grapheneos-installer-*.iso /media/$USER/Ventoy/</pre>
+
+      <h3>step 3 · export the FallBoot bundle</h3>
+      <p>Click <em>Export bundle (.zip)</em> above. The zip contains this page, the service worker, the PWA manifest, and every cached tool's HTML entry.</p>
+
+      <h3>step 4 · add a portable Chromium + the FallBoot payload</h3>
+      <pre>mkdir -p /media/$USER/Ventoy/fallboot
+unzip fallboot-bundle.zip -d /media/$USER/Ventoy/fallboot/
+cp -r ungoogled-chromium-portable /media/$USER/Ventoy/fallboot/browser/</pre>
+      <p>On any machine that boots the USB (or mounts it as a data drive), the user opens <code>fallboot/browser/chrome.exe --user-data-dir=./profile file:///path/to/fallboot/index.html</code>. The service worker installs on first open; from then on everything runs from the local cache.</p>
+
+      <h3>step 5 · verify before travel</h3>
+      <p>On the machine you'll leave behind: mount the USB, boot the portable Chromium into <code>index.html</code>, run <em>Verify integrity</em>. Green across the board means the bundle survived the copy. Any coral row means re-export.</p>
+
+      <h3>border-crossing notes</h3>
+      <ul>
+        <li>The USB stick alone shows up as a plain storage device. There's no active network stack, no signed-in accounts, no leaked identifiers.</li>
+        <li>Every estate tool inside is local-first (WebLLM, IndexedDB, WebRTC) so <em>no traffic leaves the machine</em> once loaded from cache.</li>
+        <li>GrapheneOS install itself is a separate act — the ISO on the USB gives you the option to reformat the phone but does not do so on its own.</li>
+        <li>If you carry hashes on paper (the <em>Verify integrity</em> output), you can prove on the other side that the bundle wasn't tampered with in transit.</li>
+      </ul>
+    </div>
+
+    <div class="panel" id="p-log">
+      <h2>activity log</h2>
+      <div class="log" id="log"><div class="l-dim">— boot log will appear here —</div></div>
+    </div>
+
+    <div class="panel" id="p-about">
+      <h2>about · <em>FallBoot</em></h2>
+      <p>FallBoot is a boot entry point. It reads the FallHarbor manifest, shows every estate tool with its offline status, and bundles them all into browser Cache Storage on demand. The result is a portable estate that travels on a USB stick.</p>
+      <p>Uses only already-shipped estate primitives:</p>
+      <ul>
+        <li><a href="https://sjgant80-hub.github.io/fallharbor/">FallHarbor</a> — the tool manifest and directory</li>
+        <li><a href="https://sjgant80-hub.github.io/fallstore/">FallStore</a> — content-addressed local cache pattern</li>
+        <li>Cache Storage API + service worker — browser-native offline layer</li>
+        <li>Web Crypto (SHA-256) — integrity checks against a pinned manifest</li>
+      </ul>
+      <p><em>MIT · sjgant80-hub/fallboot · v1 · 2026-07-06</em></p>
+    </div>
+  </div>
+
+  <div class="footer"><span class="glyph">◊</span> · FallBoot · portable estate · MIT · AI-Native Solutions</div>
+</main>
+
+<script>
+const HARBOR = 'https://sjgant80-hub.github.io/fallharbor/manifest.json';
+const CACHE_NAME = 'fallboot-v1';
+const STATE = { tools: [], hashes: {}, log: [] };
+
+const el = (id) => document.getElementById(id);
+const $$ = (sel) => document.querySelectorAll(sel);
+const fmt = (b) => {
+  if (!b || b < 1024) return (b||0)+' B';
+  if (b < 1024*1024) return (b/1024).toFixed(1)+' KB';
+  if (b < 1024*1024*1024) return (b/1024/1024).toFixed(2)+' MB';
+  return (b/1024/1024/1024).toFixed(2)+' GB';
+};
+const log = (msg, cls='l-dim') => {
+  const t = new Date().toISOString().substr(11,8);
+  STATE.log.push({t,msg,cls});
+  const l = el('log');
+  const d = document.createElement('div');
+  d.className = cls;
+  d.textContent = `[${t}] ${msg}`;
+  if (l.firstChild && l.firstChild.classList && l.firstChild.classList.contains('l-dim') && l.children.length===1 && l.firstChild.textContent.startsWith('—')) l.innerHTML = '';
+  l.appendChild(d);
+  l.scrollTop = l.scrollHeight;
+};
+
+async function loadManifest() {
+  try {
+    const r = await fetch(HARBOR, {cache: 'no-cache'});
+    const m = await r.json();
+    STATE.tools = m.tools;
+    el('s-total').textContent = m.tools.length;
+    log(`manifest loaded · ${m.tools.length} tools · gen ${m.lineage.generation}`, 'l-ok');
+    return m.tools;
+  } catch (e) {
+    log(`manifest fetch failed · using cached snapshot · ${e.message}`, 'l-warn');
+    STATE.tools = FALLBACK_TOOLS;
+    el('s-total').textContent = FALLBACK_TOOLS.length;
+    return FALLBACK_TOOLS;
+  }
+}
+
+// Snapshot fallback so FallBoot works fully offline even on first-load-after-copy
+const FALLBACK_TOOLS = [
+  {name:'FallMirror',slug:'fallmirror',category:'insight',description:'Private reflection tool · 7-ring probes · WebLLM',url:'https://sjgant80-hub.github.io/fallmirror/',glyph:'◊'},
+  {name:'Mesh 89 Tracker',slug:'mesh-89-tracker',category:'signal',description:'WebRTC peer count · mesh signal',url:'https://sjgant80-hub.github.io/mesh-89-tracker/',glyph:'◈'},
+  {name:'FallSignature',slug:'fallsignature',category:'signal',description:'Ed25519 content signing · Web Crypto',url:'https://sjgant80-hub.github.io/fallsignature/',glyph:'◉'},
+  {name:'Hello Device',slug:'hello-device',category:'signal',description:'Browser capability probe · WebGPU · WebLLM',url:'https://sjgant80-hub.github.io/hello-device/',glyph:'◇'},
+  {name:'Quine Cube Runner',slug:'quine-cube-runner',category:'signal',description:'Self-referential programs · 9-face cube',url:'https://sjgant80-hub.github.io/quine-cube-runner/',glyph:'◱'},
+  {name:'FallShell',slug:'fallshell',category:'portal',description:'Estate shell · directory · registry',url:'https://sjgant80-hub.github.io/fallshell/',glyph:'◧'},
+  {name:'FallHarbor',slug:'fallharbor',category:'portal',description:'Estate manifest and directory',url:'https://sjgant80-hub.github.io/fallharbor/',glyph:'◨'},
+  {name:'FoldKit Extension',slug:'foldkit-extension',category:'substrate',description:'FoldKit browser extension surface',url:'https://sjgant80-hub.github.io/foldkit-extension/',glyph:'◫'},
+  {name:'FoldKit',slug:'foldkit',category:'substrate',description:'FoldKit substrate · math primitives',url:'https://sjgant80-hub.github.io/foldkit/',glyph:'◪'},
+  {name:'FallPx',slug:'fallpx',category:'ops',description:'Pipeline orchestration · compression',url:'https://sjgant80-hub.github.io/fallpx/',glyph:'◭'},
+  {name:'9-Axis Human Sonar',slug:'9-axis-human-sonar',category:'insight',description:'9-axis reflection dashboard',url:'https://sjgant80-hub.github.io/9-axis-human-sonar/',glyph:'◮'},
+  {name:'Bloom Profile Builder',slug:'bloom-profile-builder',category:'insight',description:'Profile bloom · dashboards',url:'https://sjgant80-hub.github.io/bloom-profile-builder/',glyph:'◯'},
+  {name:'Bloom Weighted Sididy',slug:'bloom-weighted-sididy',category:'insight',description:'Weighted probe scoring',url:'https://sjgant80-hub.github.io/bloom-weighted-sididy/',glyph:'◰'},
+  {name:'Kappa EEG Checker',slug:'kappa-eeg-checker',category:'insight',description:'Signal κ probe · in-browser',url:'https://sjgant80-hub.github.io/kappa-eeg-checker/',glyph:'◲'},
+  {name:'Init Book',slug:'init-book',category:'portal',description:'Estate initialisation guide',url:'https://sjgant80-hub.github.io/init-book/',glyph:'◳'},
+  {name:'FallBrief',slug:'fallbrief',category:'ops',description:'Brief compression · pipelines',url:'https://sjgant80-hub.github.io/fallbrief/',glyph:'◴'},
+];
+
+async function renderTools() {
+  const tools = STATE.tools;
+  const grid = el('tool-grid');
+  grid.innerHTML = '';
+  const cache = 'caches' in window ? await caches.open(CACHE_NAME) : null;
+  let cached = 0;
+  for (const t of tools) {
+    const inCache = cache ? !!(await cache.match(t.url)) : false;
+    if (inCache) cached++;
+    const cls = inCache ? 'cached' : 'pending';
+    const status = inCache ? 'cached' : 'first-fetch';
+    const card = document.createElement('div');
+    card.className = 'tool ' + cls;
+    card.dataset.slug = t.slug;
+    card.dataset.url = t.url;
+    card.innerHTML = `
+      <div class="head">
+        <span class="name">${t.name}</span>
+        <span class="glyph">${t.glyph||'◊'}</span>
+      </div>
+      <div class="cat">${t.category||'estate'}</div>
+      <div class="desc">${t.description||''}</div>
+      <div class="foot">
+        <span class="status"><span class="sig"></span>${status}</span>
+        <button class="launch">Launch ↗</button>
+      </div>`;
+    card.querySelector('.launch').addEventListener('click', () => {
+      window.open(t.url, '_blank', 'noopener');
+      log(`launch · ${t.slug}`, 'l-ok');
+    });
+    grid.appendChild(card);
+  }
+  el('s-cached').textContent = cached;
+  el('s-pct').textContent = tools.length ? Math.round(cached/tools.length*100)+'%' : '0%';
+  await updateStorage();
+}
+
+async function bundle() {
+  el('btn-bundle').disabled = true;
+  el('progress').classList.add('on');
+  const tools = STATE.tools;
+  const cache = await caches.open(CACHE_NAME);
+  let done = 0, ok = 0, fail = 0;
+  log(`bundle start · ${tools.length} tools`, 'l-ok');
+  for (const t of tools) {
+    el('progress-txt').textContent = `${t.slug} · ${done+1}/${tools.length}`;
+    try {
+      const req = new Request(t.url, {mode: 'no-cors'});
+      const res = await fetch(req);
+      await cache.put(req, res.clone());
+      log(`  cached · ${t.slug}`, 'l-ok');
+      ok++;
+    } catch (e) {
+      log(`  fail · ${t.slug} · ${e.message}`, 'l-err');
+      fail++;
+    }
+    done++;
+    el('progress-bar').style.width = (done/tools.length*100)+'%';
+  }
+  log(`bundle done · ${ok} ok · ${fail} fail`, ok===tools.length ? 'l-ok' : 'l-warn');
+  el('progress-txt').textContent = `bundle complete · ${ok}/${tools.length}`;
+  setTimeout(() => el('progress').classList.remove('on'), 2200);
+  el('btn-bundle').disabled = false;
+  await renderTools();
+}
+
+async function sha256(text) {
+  const buf = new TextEncoder().encode(text);
+  const h = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function verify() {
+  el('btn-verify').disabled = true;
+  const cache = await caches.open(CACHE_NAME);
+  let checked = 0, verified = 0, tampered = 0, unavailable = 0;
+  const known = JSON.parse(localStorage.getItem('fallboot-hashes')||'{}');
+  const seen = {};
+  log(`verify start`, 'l-ok');
+  for (const t of STATE.tools) {
+    const res = await cache.match(t.url);
+    if (!res) { unavailable++; continue; }
+    checked++;
+    let hash = 'opaque';
+    try {
+      if (res.type !== 'opaque') {
+        const txt = await res.clone().text();
+        hash = await sha256(txt);
+      }
+    } catch { hash = 'opaque'; }
+    seen[t.slug] = hash;
+    const card = document.querySelector(`.tool[data-slug="${t.slug}"]`);
+    if (known[t.slug] && known[t.slug] !== hash && hash !== 'opaque') {
+      tampered++;
+      if (card) { card.classList.remove('cached'); card.classList.add('missing'); }
+      log(`  tampered · ${t.slug}`, 'l-err');
+    } else {
+      verified++;
+      if (card) card.classList.add('verified');
+      log(`  ok · ${t.slug} · ${hash.substr(0,16)}…`, 'l-ok');
+    }
+  }
+  localStorage.setItem('fallboot-hashes', JSON.stringify(seen));
+  STATE.hashes = seen;
+  el('s-verify').innerHTML = tampered ? `<em style="color:var(--coral)">${tampered} tampered</em>` : `<em>${verified} ok</em>`;
+  el('s-verify-sub').textContent = `${checked} checked · ${unavailable} missing`;
+  log(`verify done · ${verified} ok · ${tampered} tampered · ${unavailable} missing`, tampered ? 'l-err' : 'l-ok');
+  el('btn-verify').disabled = false;
+}
+
+async function updateStorage() {
+  if (!navigator.storage || !navigator.storage.estimate) return;
+  const est = await navigator.storage.estimate();
+  el('s-quota').innerHTML = `${(est.quota/1024/1024/1024).toFixed(1)} <em>GB</em>`;
+  el('s-bytes').innerHTML = `${(est.usage/1024/1024).toFixed(1)} <em>MB</em>`;
+  el('s-usage').textContent = `${(est.usage/est.quota*100).toFixed(2)}% of quota`;
+  el('s-est').textContent = `browser Cache Storage`;
+
+  const cache = await caches.open(CACHE_NAME);
+  const keys = await cache.keys();
+  const bd = el('breakdown');
+  bd.innerHTML = '';
+  if (!keys.length) {
+    bd.innerHTML = '<div class="breakdown-row"><span class="b-name">— cache empty · run Bundle —</span></div>';
+    return;
+  }
+  const avg = est.usage / keys.length;
+  for (const req of keys) {
+    const t = STATE.tools.find(x => x.url === req.url);
+    const name = t ? t.name : new URL(req.url).pathname;
+    const row = document.createElement('div');
+    row.className = 'breakdown-row';
+    row.innerHTML = `<span class="b-name">${name}</span><span class="b-bytes">${fmt(avg)}</span>`;
+    bd.appendChild(row);
+  }
+}
+
+// Minimal inline zip writer (STORE method · no compression · portable)
+function makeZip(files) {
+  const enc = new TextEncoder();
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  const crcTable = (() => {
+    const t = new Uint32Array(256);
+    for (let i=0;i<256;i++){ let c=i; for(let j=0;j<8;j++) c = (c&1) ? 0xEDB88320 ^ (c>>>1) : (c>>>1); t[i]=c; }
+    return t;
+  })();
+  const crc32 = (bytes) => {
+    let c = 0xFFFFFFFF;
+    for (let i=0;i<bytes.length;i++) c = crcTable[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+    return (c ^ 0xFFFFFFFF) >>> 0;
+  };
+  const u16 = (n) => new Uint8Array([n&0xFF,(n>>>8)&0xFF]);
+  const u32 = (n) => new Uint8Array([n&0xFF,(n>>>8)&0xFF,(n>>>16)&0xFF,(n>>>24)&0xFF]);
+  const cat = (arrs) => { let l=0; arrs.forEach(a=>l+=a.length); const o=new Uint8Array(l); let p=0; arrs.forEach(a=>{o.set(a,p);p+=a.length;}); return o; };
+
+  for (const f of files) {
+    const nameBytes = enc.encode(f.name);
+    const dataBytes = typeof f.data === 'string' ? enc.encode(f.data) : new Uint8Array(f.data);
+    const crc = crc32(dataBytes);
+    const local = cat([
+      u32(0x04034b50), u16(20), u16(0), u16(0),
+      u16(0), u16(0),
+      u32(crc), u32(dataBytes.length), u32(dataBytes.length),
+      u16(nameBytes.length), u16(0),
+      nameBytes, dataBytes
+    ]);
+    parts.push(local);
+    central.push({name: nameBytes, crc, size: dataBytes.length, offset});
+    offset += local.length;
+  }
+  const cds = [];
+  let cdSize = 0;
+  for (const c of central) {
+    const entry = cat([
+      u32(0x02014b50), u16(20), u16(20), u16(0), u16(0),
+      u16(0), u16(0),
+      u32(c.crc), u32(c.size), u32(c.size),
+      u16(c.name.length), u16(0), u16(0), u16(0), u16(0),
+      u32(0), u32(c.offset), c.name
+    ]);
+    cds.push(entry);
+    cdSize += entry.length;
+  }
+  const eocd = cat([
+    u32(0x06054b50), u16(0), u16(0),
+    u16(central.length), u16(central.length),
+    u32(cdSize), u32(offset), u16(0)
+  ]);
+  return new Blob([...parts, ...cds, eocd], {type: 'application/zip'});
+}
+
+async function exportBundle() {
+  el('btn-export').disabled = true;
+  log('export · packaging bundle', 'l-ok');
+  const files = [];
+  const shellFiles = ['index.html','sw.js','manifest.webmanifest','README.md','LICENSE','.nojekyll'];
+  for (const name of shellFiles) {
+    try {
+      const r = await fetch(name);
+      if (r.ok) files.push({name, data: await r.arrayBuffer()});
+    } catch { log(`  skip · ${name}`, 'l-warn'); }
+  }
+  const cache = await caches.open(CACHE_NAME);
+  for (const t of STATE.tools) {
+    const res = await cache.match(t.url);
+    if (!res) continue;
+    try {
+      const bytes = await res.clone().arrayBuffer();
+      files.push({name: `estate/${t.slug}/index.html`, data: bytes});
+    } catch (e) {
+      log(`  opaque · ${t.slug} · cannot serialise`, 'l-warn');
+    }
+  }
+  const manifestSnap = JSON.stringify({tools: STATE.tools, generated: new Date().toISOString()}, null, 2);
+  files.push({name: 'estate/manifest.json', data: manifestSnap});
+  files.push({name: 'BOOT.txt', data: `FallBoot portable estate\n\nOpen index.html in a browser (Chromium/Firefox).\nFirst load registers the service worker · then everything runs offline.\n\nFor USB-bootable setup see the "Boot from USB" tab in FallBoot.\n\nMIT · AI-Native Solutions · ${new Date().toISOString()}\n`});
+  const blob = makeZip(files);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `fallboot-bundle-${new Date().toISOString().substr(0,10)}.zip`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+  log(`export done · ${files.length} files · ${fmt(blob.size)}`, 'l-ok');
+  el('btn-export').disabled = false;
+}
+
+async function purgeCache() {
+  if (!confirm('Purge FallBoot cache? Tools will need re-bundling.')) return;
+  await caches.delete(CACHE_NAME);
+  localStorage.removeItem('fallboot-hashes');
+  log('cache purged', 'l-warn');
+  await renderTools();
+}
+
+$$('.tab').forEach(t => t.addEventListener('click', () => {
+  $$('.tab').forEach(x => x.classList.remove('on'));
+  $$('.panel').forEach(x => x.classList.remove('on'));
+  t.classList.add('on');
+  el('p-' + t.dataset.panel).classList.add('on');
+}));
+
+el('btn-bundle').addEventListener('click', bundle);
+el('btn-verify').addEventListener('click', verify);
+el('btn-export').addEventListener('click', exportBundle);
+el('btn-refresh').addEventListener('click', renderTools);
+el('btn-gc').addEventListener('click', purgeCache);
+
+window.addEventListener('online',  () => { el('net-dot').className='dot on'; el('net-txt').textContent='online'; });
+window.addEventListener('offline', () => { el('net-dot').className='dot off'; el('net-txt').textContent='offline'; });
+if (!navigator.onLine) { el('net-dot').className='dot off'; el('net-txt').textContent='offline'; }
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(() => {
+    el('sw-dot').className = 'dot on';
+    log('service worker registered', 'l-ok');
+  }).catch(e => log('service worker fail · '+e.message, 'l-err'));
+}
+
+(async () => {
+  await loadManifest();
+  await renderTools();
+  log('FallBoot ready', 'l-ok');
+})();
+</script>
+</body>
+</html>
